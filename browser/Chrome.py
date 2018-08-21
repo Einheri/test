@@ -2,14 +2,19 @@
 # -*- coding: utf8 -*-
 import pytest
 import allure
+import os
 from time import sleep
 
 from selenium import webdriver
 
 
+PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
+DRIVER_BIN = os.path.join(PROJECT_ROOT, "chromedriver")
+
+
 class Chrome:  # chrome based (Chrome, yandex-browser)
     @pytest.allure.step('Open driver session')
-    def __init__(self, command_executor='', browser='chrome', version='67.0'):
+    def __init__(self, browser='chrome', version='67.0'):
         self.browser = browser
         chrome_options = webdriver.ChromeOptions()
         webdriver.DesiredCapabilities()
@@ -19,10 +24,7 @@ class Chrome:  # chrome based (Chrome, yandex-browser)
                              'browserName': browser})
 
         print 'Create Driver session: browser: {}, version: {}'.format(browser, version)
-        self.driver = webdriver.Remote(
-            command_executor=command_executor,
-            desired_capabilities=capabilities,
-            keep_alive=True)
+        self.driver = webdriver.Chrome()
         print 'Session ID: {}'.format(self.driver.session_id)
         self.driver.set_script_timeout(10)
 
@@ -46,20 +48,6 @@ class Chrome:  # chrome based (Chrome, yandex-browser)
                 i += 1
                 sleep(1)
 
-    def openUrl1(self, url, timeout=10):
-        self.driver.get(url)
-        i = 0
-        print "Checking if {} page is loaded.".format(self.driver.current_url)
-        while i < timeout:
-            page_state = self.driver.execute_script('return document.readyState;')
-            if page_state == 'complete':
-                break
-            else:
-                print '.'
-                i += 1
-                sleep(1)
-        sleep(10)
-
     def SwitchToDefaultFrame(self):
         self.driver.switch_to.default_content()
 
@@ -80,9 +68,9 @@ class Chrome:  # chrome based (Chrome, yandex-browser)
         self.driver.close()
 
     def __exit__(self, type, value, traceback):
-        self.close()
         if type is None:  # Если исключение не возникло
             print "Исключение не возникло"
         else:  # Если возникло исключение
             print "Value =", value
             return False
+        self.close()
